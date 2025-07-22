@@ -58,15 +58,16 @@ contract AMM is AccessControl{
 
 		//YOUR CODE HERE 
 		address buyToken = sellToken == tokenA ? tokenB : tokenA;
+
+		// Compute balances BEFORE the transfer
+		uint256 preSellBal = ERC20(sellToken).balanceOf(address(this));
+		uint256 preBuyBal = ERC20(buyToken).balanceOf(address(this));
+
+		// Transfer input token to the pool
 		ERC20(sellToken).transferFrom(msg.sender, address(this), sellAmount);
 
-		uint256 balSell = ERC20(sellToken).balanceOf(address(this));
-		uint256 balBuy = ERC20(buyToken).balanceOf(address(this));
-
 		uint256 amountInWithFee = sellAmount * (10000 - feebps) / 10000;
-		uint256 k = balSell * balBuy;
-		uint256 newBuyBal = k / (balSell);
-		swapAmt = balBuy - newBuyBal;
+		swapAmt = (amountInWithFee * preBuyBal) / (preSellBal + amountInWithFee);
 
 		ERC20(buyToken).transfer(msg.sender, swapAmt);
 		emit Swap(sellToken, buyToken, sellAmount, swapAmt);

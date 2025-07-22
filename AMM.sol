@@ -57,6 +57,19 @@ contract AMM is AccessControl{
 		uint256 swapAmt;
 
 		//YOUR CODE HERE 
+		address buyToken = sellToken == tokenA ? tokenB : tokenA;
+		ERC20(sellToken).transferFrom(msg.sender, address(this), sellAmount);
+
+		uint256 balSell = ERC20(sellToken).balanceOf(address(this));
+		uint256 balBuy = ERC20(buyToken).balanceOf(address(this));
+
+		uint256 amountInWithFee = sellAmount * (10000 - feebps) / 10000;
+		uint256 k = balSell * balBuy;
+		uint256 newBuyBal = k / (balSell);
+		swapAmt = balBuy - newBuyBal;
+
+		ERC20(buyToken).transfer(msg.sender, swapAmt);
+		emit Swap(sellToken, buyToken, sellAmount, swapAmt);
 
 		uint256 new_invariant = ERC20(tokenA).balanceOf(address(this))*ERC20(tokenB).balanceOf(address(this));
 		require( new_invariant >= invariant, 'Bad trade' );
@@ -69,6 +82,9 @@ contract AMM is AccessControl{
 	function provideLiquidity( uint256 amtA, uint256 amtB ) public {
 		require( amtA > 0 || amtB > 0, 'Cannot provide 0 liquidity' );
 		//YOUR CODE HERE
+		ERC20(tokenA).transferFrom(msg.sender, address(this), amtA);
+		ERC20(tokenB).transferFrom(msg.sender, address(this), amtB);
+		invariant = ERC20(tokenA).balanceOf(address(this)) * ERC20(tokenB).balanceOf(address(this));
 		emit LiquidityProvision( msg.sender, amtA, amtB );
 	}
 
@@ -88,6 +104,5 @@ contract AMM is AccessControl{
 		invariant = ERC20(tokenA).balanceOf(address(this))*ERC20(tokenB).balanceOf(address(this));
 		emit Withdrawal( msg.sender, recipient, amtA, amtB );
 	}
-
 
 }

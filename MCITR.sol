@@ -11,7 +11,7 @@ contract MCITR is ERC777, AccessControl {
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
     constructor(uint256 initialSupply, address admin)
-        ERC777("MCIT Reentrancy", "MCITR", new address )
+        ERC777("MCIT Reentrancy", "MCITR", new address[](0))
     {
         _grantRole(DEFAULT_ADMIN_ROLE, admin);
         _grantRole(MINTER_ROLE, admin);

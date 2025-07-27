@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
@@ -100,4 +101,4 @@ contract Bank is AccessControl, IERC777Recipient {
 	}
 
 
-}
+} 
